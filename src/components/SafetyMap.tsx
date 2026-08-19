@@ -78,7 +78,24 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
         <span className="demo-banner">Dynamic Vector Telemetry</span>
       </div>
 
-      <div style={{ position: 'relative', width: '100%', height: 'auto', backgroundColor: '#0d1324', borderRadius: '8px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', height: 'auto', backgroundColor: '#0d1324', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+        {/* HUD Live Telemetry Overlay */}
+        <div style={{ position: 'absolute', top: '12px', left: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: '#38bdf8', textShadow: '0 0 5px rgba(56,189,248,0.5)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10, background: 'rgba(6,10,19,0.6)', padding: '6px 8px', borderRadius: '6px', border: '1px solid rgba(56,189,248,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+            <span style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'inline-block', animation: 'pulse-text 1s infinite alternate' }} />
+            TELEMETRY FEED
+          </div>
+          <div>GPS: {currentLocation ? 'CONNECTED (98%)' : 'STANDBY'}</div>
+          <div>LAT: {currentLocation ? currentLocation.lat.toFixed(5) : '12.97160'}</div>
+          <div>LNG: {currentLocation ? currentLocation.lng.toFixed(5) : '77.59460'}</div>
+        </div>
+
+        <div style={{ position: 'absolute', top: '12px', right: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: deviationState !== 'NORMAL' ? 'var(--color-high)' : 'var(--color-safe)', textShadow: deviationState !== 'NORMAL' ? '0 0 5px rgba(239,68,68,0.5)' : '0 0 5px rgba(16,185,129,0.5)', zIndex: 10, textAlign: 'right', background: 'rgba(6,10,19,0.6)', padding: '6px 8px', borderRadius: '6px', border: deviationState !== 'NORMAL' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(16,185,129,0.2)' }}>
+          <div style={{ fontWeight: 'bold' }}>STATE: {deviationState === 'HIGH' ? 'DEVIATED' : deviationState === 'WARNING' ? 'WARNING' : 'ALIGNED'}</div>
+          <div>OFFSET: {deviationState !== 'NORMAL' ? 'OUT OF BOUNDS' : '0.00 METERS'}</div>
+          <div>NET LATENCY: 42ms</div>
+        </div>
+
         <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%" aria-label="Campus safety telemetry map">
           {/* Map Grid background */}
           <defs>

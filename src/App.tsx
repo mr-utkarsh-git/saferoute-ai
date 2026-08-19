@@ -275,6 +275,10 @@ function App() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.7rem', color: journeyState.status === 'SOS_ACTIVE' ? 'var(--color-sos)' : journeyState.status === 'CHECKIN_MISSED' ? 'var(--color-caution)' : 'var(--color-safe)', fontWeight: 700, background: journeyState.status === 'SOS_ACTIVE' ? 'rgba(255, 0, 85, 0.1)' : journeyState.status === 'CHECKIN_MISSED' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '0.35rem 0.75rem', borderRadius: '6px', border: journeyState.status === 'SOS_ACTIVE' ? '1px solid rgba(255, 0, 85, 0.25)' : journeyState.status === 'CHECKIN_MISSED' ? '1px solid rgba(245, 158, 11, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            <span style={{ width: '6px', height: '6px', backgroundColor: journeyState.status === 'SOS_ACTIVE' ? 'var(--color-sos)' : journeyState.status === 'CHECKIN_MISSED' ? 'var(--color-caution)' : 'var(--color-safe)', borderRadius: '50%', display: 'inline-block', animation: 'pulse-text 1s infinite alternate' }} />
+            {journeyState.status === 'SOS_ACTIVE' ? '🚨 SOS BEACON ACTIVE' : journeyState.status === 'CHECKIN_MISSED' ? '⚠️ CHECK-IN MISSED' : '🛡️ SAFETY SHIELD ACTIVE'}
+          </div>
           <span className="demo-banner" style={{ border: '1px solid #0369a1', color: '#38bdf8' }}>
             <Radio size={10} style={{ display: 'inline', marginRight: '0.25rem', verticalAlign: 'middle' }} />
             SafetyNet Hub
