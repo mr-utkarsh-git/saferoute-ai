@@ -88,8 +88,27 @@ function App() {
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
+    // Scroll Reveal Intersection Observer for cards
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible');
+          }
+        });
+      },
+      { threshold: 0.02 }
+    );
+
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card) => observer.observe(card));
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cards.forEach((card) => observer.unobserve(card));
+    };
+  }, [journeyState.status, reports, contacts]);
 
   // Sync state to localstorage for persistency
   useEffect(() => {
