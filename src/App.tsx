@@ -78,6 +78,18 @@ function App() {
   const [deviationState, setDeviationState] = useState<DeviationState>('NORMAL');
   const [deviationDistance, setDeviationDistance] = useState<number>(0);
   const [currentRouteRisk, setCurrentRouteRisk] = useState<number>(10);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalScroll > 0) {
+        setScrollProgress((window.scrollY / totalScroll) * 100);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Sync state to localstorage for persistency
   useEffect(() => {
@@ -260,13 +272,14 @@ function App() {
 
   return (
     <div className="app-container">
+      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} aria-hidden="true" />
       <header className="header">
         <div className="header-title-group">
           <div className="logo-badge" aria-hidden="true">
             SR
           </div>
           <div>
-            <h1 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <h1 className="shimmer-text" style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 800 }}>
               SafeRoute AI
             </h1>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
