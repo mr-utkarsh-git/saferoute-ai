@@ -527,13 +527,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h2>
         </div>
         {timeline.length > 0 ? (
-          <div className="timeline-list">
-            {timeline.slice().reverse().map((ev, i) => (
-              <div key={i} className="timeline-item">
-                <span className="timeline-time">[{ev.time}]</span>
-                <span className="timeline-content">{ev.event}</span>
-              </div>
-            ))}
+          <div className="timeline-list" style={{ fontFamily: 'monospace', fontSize: '0.8rem', background: 'rgba(6, 10, 19, 0.4)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)', maxHeight: '280px', overflowY: 'auto' }}>
+            {timeline.slice().reverse().map((ev, i) => {
+              const isSos = ev.event.includes('SOS') || ev.event.includes('Emergency') || ev.event.includes('beacon');
+              const isWarning = ev.event.includes('Deviated') || ev.event.includes('missed') || ev.event.includes('Warning') || ev.event.includes('timeout') || ev.event.includes('Missed');
+              const logColor = isSos ? 'var(--color-sos)' : isWarning ? 'var(--color-caution)' : 'var(--color-safe)';
+              
+              return (
+                <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem', color: logColor, alignItems: 'flex-start', lineHeight: '1.4' }}>
+                  <span style={{ color: 'var(--text-dark)', flexShrink: 0 }}>[{ev.time}]</span>
+                  <span style={{ color: 'var(--border-focus)', fontWeight: 'bold', flexShrink: 0 }}>usr@safenet:~$</span>
+                  <span style={{ wordBreak: 'break-word' }}>{ev.event}</span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>

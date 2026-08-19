@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Map } from 'lucide-react';
 import type { Coordinate, DeviationState } from '../services/deviationDetector';
 import type { CommunityReportInput } from '../services/validation';
@@ -18,19 +18,21 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
   reports,
   routeName
 }) => {
-  // Bounding coordinate references
-  const baseLat = 12.9716;
-  const baseLng = 77.5946;
-
   // SVG bounding dimensions
   const width = 450;
   const height = 280;
+
+  // Mouse HUD crosshair coordinates
+  const [hudCoords, setHudCoords] = useState<{ x: number; y: number } | null>(null);
 
   // Grid coordinates mapping parameters
   const minLat = 12.9710;
   const maxLat = 12.9760;
   const minLng = 77.5940;
   const maxLng = 77.6000;
+
+  const baseLat = 12.9716;
+  const baseLng = 77.5946;
 
   // Projects a lat/lng coordinate into SVG viewport pixel coordinates
   const project = (lat: number, lng: number) => {
@@ -68,6 +70,18 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
     { name: 'Industrial Crossing Zone (Deserted)', lat: 12.9740, lng: 77.5942, radius: 30, type: 'isolation' }
   ];
 
+  // Handle cursor moves over map grid to project interactive target crosshair coordinates
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * width;
+    const y = ((e.clientY - rect.top) / rect.height) * height;
+    setHudCoords({ x: Math.round(x), y: Math.round(y) });
+  };
+
+  const handleMouseLeave = () => {
+    setHudCoords(null);
+  };
+
   return (
     <div className="card" style={{ gap: '0.75rem' }}>
       <div className="card-header">
@@ -79,8 +93,12 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
       </div>
 
       <div style={{ position: 'relative', width: '100%', height: 'auto', backgroundColor: '#0d1324', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+        
+        {/* Continuous cyber scan laser sweep overlay */}
+        <div className="map-scan-line" />
+
         {/* HUD Live Telemetry Overlay */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: '#38bdf8', textShadow: '0 0 5px rgba(56,189,248,0.5)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10, background: 'rgba(6,10,19,0.6)', padding: '6px 8px', borderRadius: '6px', border: '1px solid rgba(56,189,248,0.15)' }}>
+        <div style={{ position: 'absolute', top: '12px', left: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: '#38bdf8', textShadow: '0 0 5px rgba(56,189,248,0.5)', display: 'flex', flexDirection: 'column', gap: '3px', zIndex: 10, background: 'rgba(6,10,19,0.7)', padding: '6px 8px', borderRadius: '6px', border: '1px solid rgba(56,189,248,0.2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
             <span style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'inline-block', animation: 'pulse-text 1s infinite alternate' }} />
             TELEMETRY FEED
@@ -90,13 +108,21 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
           <div>LNG: {currentLocation ? currentLocation.lng.toFixed(5) : '77.59460'}</div>
         </div>
 
-        <div style={{ position: 'absolute', top: '12px', right: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: deviationState !== 'NORMAL' ? 'var(--color-high)' : 'var(--color-safe)', textShadow: deviationState !== 'NORMAL' ? '0 0 5px rgba(239,68,68,0.5)' : '0 0 5px rgba(16,185,129,0.5)', zIndex: 10, textAlign: 'right', background: 'rgba(6,10,19,0.6)', padding: '6px 8px', borderRadius: '6px', border: deviationState !== 'NORMAL' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(16,185,129,0.2)' }}>
+        <div style={{ position: 'absolute', top: '12px', right: '12px', pointerEvents: 'none', fontFamily: 'monospace', fontSize: '0.65rem', color: deviationState !== 'NORMAL' ? 'var(--color-high)' : 'var(--color-safe)', textShadow: deviationState !== 'NORMAL' ? '0 0 5px rgba(239,68,68,0.5)' : '0 0 5px rgba(16,185,129,0.5)', zIndex: 10, textAlign: 'right', background: 'rgba(6,10,19,0.7)', padding: '6px 8px', borderRadius: '6px', border: deviationState !== 'NORMAL' ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(16,185,129,0.2)' }}>
           <div style={{ fontWeight: 'bold' }}>STATE: {deviationState === 'HIGH' ? 'DEVIATED' : deviationState === 'WARNING' ? 'WARNING' : 'ALIGNED'}</div>
           <div>OFFSET: {deviationState !== 'NORMAL' ? 'OUT OF BOUNDS' : '0.00 METERS'}</div>
           <div>NET LATENCY: 42ms</div>
         </div>
 
-        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%" aria-label="Campus safety telemetry map">
+        <svg 
+          viewBox={`0 0 ${width} ${height}`} 
+          width="100%" 
+          height="100%" 
+          aria-label="Campus safety telemetry map"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{ cursor: 'crosshair' }}
+        >
           {/* Map Grid background */}
           <defs>
             <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
@@ -227,6 +253,53 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
                 stroke="white"
                 strokeWidth="1.5"
               />
+            </g>
+          )}
+
+          {/* Interactive target laser crosshairs tracking mouse moves */}
+          {hudCoords && (
+            <g pointerEvents="none">
+              {/* Horizontal laser line */}
+              <line
+                x1="0"
+                y1={hudCoords.y}
+                x2={width}
+                y2={hudCoords.y}
+                stroke="rgba(56, 189, 248, 0.3)"
+                strokeDasharray="2 3"
+                strokeWidth="1"
+              />
+              {/* Vertical laser line */}
+              <line
+                x1={hudCoords.x}
+                y1="0"
+                x2={hudCoords.x}
+                y2={height}
+                stroke="rgba(56, 189, 248, 0.3)"
+                strokeDasharray="2 3"
+                strokeWidth="1"
+              />
+              {/* Coordinates details next to target indicator */}
+              <rect
+                x={hudCoords.x + 8}
+                y={hudCoords.y - 18}
+                width="64"
+                height="12"
+                rx="2"
+                fill="rgba(6, 10, 19, 0.85)"
+                stroke="rgba(56, 189, 248, 0.4)"
+                strokeWidth="0.5"
+              />
+              <text
+                x={hudCoords.x + 12}
+                y={hudCoords.y - 10}
+                fill="#38bdf8"
+                fontSize="6"
+                fontFamily="monospace"
+                fontWeight="bold"
+              >
+                {`GRID:${hudCoords.x},${hudCoords.y}`}
+              </text>
             </g>
           )}
         </svg>
