@@ -293,6 +293,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 Activating emergency protocol in...
               </p>
               <div className="checkin-countdown-val">{sosCountdownVal}</div>
+              <div className="sos-countdown-progress-bar" aria-hidden="true">
+                <div 
+                  className="sos-countdown-progress-fill" 
+                  style={{ width: `${((3 - sosCountdownVal) / 3) * 100}%` }}
+                />
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button onClick={triggerSosImmediately} className="btn-primary" style={{ backgroundColor: 'var(--color-sos)' }}>

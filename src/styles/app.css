@@ -290,16 +290,30 @@ button {
   box-shadow: 0 8px 30px rgba(255, 0, 85, 0.45);
   position: relative;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: sos-pulse-subtle 2s infinite alternate;
 }
 
 .btn-sos:hover {
   background: linear-gradient(135deg, #ff3377 0%, #ff0055 100%);
-  transform: scale(1.015);
+  transform: scale(1.02);
   box-shadow: 0 10px 40px rgba(255, 0, 85, 0.65);
+  animation: sos-rapid-flash 0.3s infinite alternate;
 }
 
 .btn-sos:active {
-  transform: scale(0.995);
+  transform: scale(0.98);
+}
+
+/* SOS Animations */
+@keyframes sos-pulse-subtle {
+  0% { box-shadow: 0 4px 15px rgba(255, 0, 85, 0.25), inset 0 0 0px rgba(255,255,255,0); }
+  100% { box-shadow: 0 8px 25px rgba(255, 0, 85, 0.45), inset 0 0 10px rgba(255,255,255,0.15); }
+}
+
+@keyframes sos-rapid-flash {
+  0% { opacity: 0.9; box-shadow: 0 0 20px rgba(255, 0, 85, 0.6); }
+  100% { opacity: 1; box-shadow: 0 0 35px rgba(255, 0, 85, 0.95); }
 }
 
 /* Radar ripple pulse animations */
@@ -345,6 +359,7 @@ button {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
 }
 
 .status-safe {
@@ -401,7 +416,7 @@ button {
   border-radius: 12px;
   padding: 1.25rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -409,14 +424,23 @@ button {
 }
 
 .route-item:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  background: rgba(30, 41, 59, 0.55);
+  transform: translateY(-3px);
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(20, 32, 61, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(56, 189, 248, 0.08);
 }
 
 .route-item.selected {
   border-color: var(--border-focus);
-  background: rgba(56, 189, 248, 0.06);
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.05);
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.2);
+  animation: selected-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes selected-pop {
+  0% { transform: scale(1.0); }
+  50% { transform: scale(1.015); }
+  100% { transform: scale(1.0); }
 }
 
 /* Alerts and Warnings Banner */
@@ -444,6 +468,24 @@ button {
   font-weight: 800;
   color: var(--sos-neon);
   font-family: var(--font-header);
+}
+
+/* Countdown progress track and fill styling */
+.sos-countdown-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.sos-countdown-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff0055, #a855f7);
+  border-radius: 999px;
+  transition: width 1s linear;
+  box-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
 }
 
 .danger-modal-overlay {
@@ -507,6 +549,15 @@ button {
   box-shadow: inset 2px 0 10px rgba(56, 189, 248, 0.02);
 }
 
+.ai-breathing-icon {
+  animation: breathing-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes breathing-glow {
+  0%, 100% { opacity: 0.75; transform: scale(1.0); filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.1)); }
+  50% { opacity: 1.0; transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.55)); }
+}
+
 /* Tab Switching Header */
 .tabs-header {
   display: flex;
@@ -557,6 +608,16 @@ button {
   color: var(--border-focus);
   font-family: monospace;
   font-weight: 600;
+}
+
+/* News alerts entry animation for feed list */
+.report-item-animated {
+  animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(35px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 /* Custom modern scrollbars */

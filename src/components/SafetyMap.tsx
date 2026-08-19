@@ -127,7 +127,7 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
             />
           )}
 
-          {/* Dotted path representing points when user deviates */}
+          {/* Marching ants vector representing points when user deviates */}
           {userPt && deviationState !== 'NORMAL' && points.length > 0 && (
             <line
               x1={userPt.x}
@@ -135,10 +135,12 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
               x2={points[0].x} // draw reference vector back to start path point
               y2={points[0].y}
               stroke="var(--color-high)"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              opacity="0.8"
-            />
+              strokeWidth="2.5"
+              strokeDasharray="6 4"
+              opacity="0.85"
+            >
+              <animate attributeName="stroke-dashoffset" values="0;20" dur="1s" repeatCount="indefinite" />
+            </line>
           )}
 
           {/* Community safety report pins */}
@@ -168,28 +170,42 @@ export const SafetyMap: React.FC<SafetyMapProps> = ({
             );
           })}
 
-          {/* Pulsing Active User Marker */}
+          {/* Staggered Pulsing Active User Marker */}
           {userPt && (
             <g>
-              {/* Outer pulsing radar ring */}
+              {/* Outer pulsing ring 1 */}
               <circle
                 cx={userPt.x}
                 cy={userPt.y}
-                r={deviationState === 'HIGH' ? '18' : '12'}
+                r="6"
                 fill="none"
                 stroke={deviationState === 'HIGH' ? 'var(--color-high)' : deviationState === 'WARNING' ? 'var(--color-caution)' : 'var(--color-safe)'}
-                strokeWidth="2"
-                opacity="0.6"
+                strokeWidth="1.5"
+                opacity="0.8"
               >
-                <animate attributeName="r" values="6;20" dur="1.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.8;0" dur="1.5s" repeatCount="indefinite" />
+                <animate attributeName="r" values="6;24" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0" dur="2s" repeatCount="indefinite" />
+              </circle>
+
+              {/* Outer pulsing ring 2 (staggered delay) */}
+              <circle
+                cx={userPt.x}
+                cy={userPt.y}
+                r="6"
+                fill="none"
+                stroke={deviationState === 'HIGH' ? 'var(--color-high)' : deviationState === 'WARNING' ? 'var(--color-caution)' : 'var(--color-safe)'}
+                strokeWidth="1.5"
+                opacity="0.8"
+              >
+                <animate attributeName="r" values="6;24" dur="2s" begin="1s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0" dur="2s" begin="1s" repeatCount="indefinite" />
               </circle>
 
               {/* Solid inner marker circle */}
               <circle
                 cx={userPt.x}
                 cy={userPt.y}
-                r="6"
+                r="6.5"
                 fill={deviationState === 'HIGH' ? 'var(--color-high)' : deviationState === 'WARNING' ? 'var(--color-caution)' : 'var(--color-safe)'}
                 stroke="white"
                 strokeWidth="1.5"

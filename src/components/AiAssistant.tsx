@@ -71,7 +71,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     <div className="card" style={{ height: '100%' }}>
       <div className="card-header">
         <h2 className="card-title">
-          <Sparkles size={18} style={{ color: '#38bdf8' }} />
+          <Sparkles size={18} className="ai-breathing-icon" style={{ color: '#38bdf8' }} />
           AI Safety Companion
         </h2>
         {aiAdvice && (

@@ -105,7 +105,7 @@ export const CommunityReports: React.FC<CommunityReportsProps> = ({
           
           <div className="report-list">
             {reports.slice().reverse().map((rep, idx) => (
-              <div key={idx} className="report-item">
+              <div key={idx} className="report-item report-item-animated">
                 <div className="report-item-header">
                   <span style={{ fontWeight: 600, textTransform: 'capitalize', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <ShieldAlert size={12} style={{ color: 'var(--color-caution)' }} />
