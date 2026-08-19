@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Radio } from 'lucide-react';
 import { RoutePlanner } from './components/RoutePlanner';
+import { SafetyMap } from './components/SafetyMap';
 import { Dashboard } from './components/Dashboard';
 import { AiAssistant } from './components/AiAssistant';
 import { CommunityReports } from './components/CommunityReports';
@@ -288,6 +289,14 @@ function App() {
             onStartJourney={handleStartJourney}
             activeJourney={journeyState.status !== 'IDLE'}
             communityReportsCount={reports.length}
+          />
+
+          <SafetyMap
+            routeCoordinates={journeyState.routeCoordinates}
+            currentLocation={journeyState.currentLocation}
+            deviationState={deviationState}
+            reports={reports}
+            routeName={journeyState.routeName}
           />
 
           <Dashboard

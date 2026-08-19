@@ -545,3 +545,32 @@ input:focus, select:focus, textarea:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Warning & Telemetry Animations */
+.card-pulse-caution {
+  animation: border-pulse-caution 2s infinite alternate;
+}
+
+.card-pulse-high {
+  animation: border-pulse-high 1.5s infinite alternate;
+}
+
+@keyframes border-pulse-caution {
+  0% { border-color: var(--border-color); }
+  100% { border-color: rgba(245, 158, 11, 0.65); box-shadow: 0 0 8px rgba(245, 158, 11, 0.15); }
+}
+
+@keyframes border-pulse-high {
+  0% { border-color: var(--border-color); }
+  100% { border-color: rgba(239, 68, 68, 0.85); box-shadow: 0 0 12px rgba(239, 68, 68, 0.25); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

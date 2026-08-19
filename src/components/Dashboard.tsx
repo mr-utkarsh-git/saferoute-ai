@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AlertOctagon, CheckCircle2, Flame, MapPin, ShieldAlert, UserPlus, Users, Trash } from 'lucide-react';
 import type { JourneyState } from '../services/journeyManager';
 import type { RiskLevel } from '../services/riskEngine';
@@ -49,6 +49,122 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [sosCountdownVal, setSosCountdownVal] = useState(3);
   const [sosTimerId, setSosTimerId] = useState<any | null>(null);
 
+  // Web Audio refs for the Siren
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sirenIntervalRef = useRef<any | null>(null);
+  const sirenOscillatorRef = useRef<OscillatorNode | null>(null);
+  const sirenGainRef = useRef<GainNode | null>(null);
+
+  const stopSosSiren = () => {
+    if (sirenIntervalRef.current) {
+      clearInterval(sirenIntervalRef.current);
+      sirenIntervalRef.current = null;
+    }
+
+    const oscillator = sirenOscillatorRef.current;
+    const gain = sirenGainRef.current;
+    const audioContext = audioContextRef.current;
+
+    if (oscillator && audioContext) {
+      try {
+        const now = audioContext.currentTime;
+        if (gain) {
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setValueAtTime(0.0001, now);
+        }
+        oscillator.stop(now + 0.05);
+      } catch {
+        // Oscillator may already have stopped
+      }
+    }
+    sirenOscillatorRef.current = null;
+    sirenGainRef.current = null;
+  };
+
+  const startSosSiren = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        console.warn('Web Audio API is not supported by this browser.');
+        return;
+      }
+
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContextClass();
+      }
+
+      const audioContext = audioContextRef.current;
+      if (audioContext.state === 'suspended') {
+        void audioContext.resume();
+      }
+
+      // Stop any existing siren first to prevent overlap
+      stopSosSiren();
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = 'sawtooth';
+      gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start();
+
+      sirenOscillatorRef.current = oscillator;
+      sirenGainRef.current = gain;
+
+      let highTone = false;
+      const updateSiren = () => {
+        if (!audioContextRef.current || !sirenOscillatorRef.current) return;
+        const now = audioContextRef.current.currentTime;
+        highTone = !highTone;
+
+        sirenOscillatorRef.current.frequency.cancelScheduledValues(now);
+        sirenOscillatorRef.current.frequency.setValueAtTime(
+          highTone ? 1100 : 650,
+          now
+        );
+
+        if (sirenGainRef.current) {
+          sirenGainRef.current.gain.cancelScheduledValues(now);
+          sirenGainRef.current.gain.setValueAtTime(0.0001, now);
+          sirenGainRef.current.gain.linearRampToValueAtTime(
+            0.16,
+            now + 0.08
+          );
+        }
+      };
+
+      updateSiren();
+      sirenIntervalRef.current = setInterval(updateSiren, 500);
+    } catch (error) {
+      console.error('Unable to start SOS siren:', error);
+    }
+  };
+
+  // Synchronize audio on status changes
+  useEffect(() => {
+    if (status === 'SOS_ACTIVE') {
+      startSosSiren();
+    } else {
+      stopSosSiren();
+    }
+    return () => stopSosSiren();
+  }, [status]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopSosSiren();
+      if (audioContextRef.current) {
+        void audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
   // Status mapping
   const riskLevel: RiskLevel = classifyRiskLevel(routeRiskScore, status === 'SOS_ACTIVE');
   let statusClass = 'status-safe';
@@ -96,12 +212,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleSosClick = () => {
     if (status === 'SOS_ACTIVE') {
+      stopSosSiren();
       onRecoverFromSos(true);
       return;
     }
 
+    // Touch Context user gesture activation
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
     if (sosCountdownActive) {
-      // Double click cancels countdown and triggers immediately
       triggerSosImmediately();
       return;
     }
@@ -126,6 +247,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const triggerSosImmediately = () => {
     if (sosTimerId) clearInterval(sosTimerId);
     setSosCountdownActive(false);
+    
+    // Explicit activation bound to gesture to guarantee sound plays immediately
+    startSosSiren();
     onTriggerSos();
   };
 
@@ -151,7 +275,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button onClick={onConfirmCheckIn} className="btn-primary" style={{ background: 'var(--color-safe)' }}>
               🟢 I'm Safe
             </button>
-            <button onClick={onTriggerSos} className="btn-secondary" style={{ border: '1px solid var(--color-sos)', color: 'var(--color-sos)' }}>
+            <button onClick={() => { startSosSiren(); onTriggerSos(); }} className="btn-secondary" style={{ border: '1px solid var(--color-sos)', color: 'var(--color-sos)' }}>
               🚨 Escalate Alert
             </button>
           </div>
@@ -172,7 +296,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button onClick={triggerSosImmediately} className="btn-primary" style={{ backgroundColor: 'var(--color-sos)' }}>
-                Trigger Immediately
+                🚨 Trigger Immediately
               </button>
               <button onClick={handleCancelSosCountdown} className="btn-secondary">
                 Cancel
@@ -200,12 +324,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ⚠️ No trusted contacts configured! Configure contacts below to send demo alerts.
               </div>
             )}
+            <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--color-sos)', fontWeight: 600 }}>
+              🔊 SOS SIREN ACTIVE
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'center' }}>
-            <button onClick={() => onRecoverFromSos(true)} className="btn-primary" style={{ background: 'var(--color-safe)' }}>
+            <button onClick={() => { stopSosSiren(); onRecoverFromSos(true); }} className="btn-primary" style={{ background: 'var(--color-safe)' }}>
               Deactivate SOS & Resume
             </button>
-            <button onClick={() => onRecoverFromSos(false)} className="btn-secondary">
+            <button onClick={() => { stopSosSiren(); onRecoverFromSos(false); }} className="btn-secondary">
               End Journey Completely
             </button>
           </div>
@@ -214,7 +341,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="dashboard-row-top">
         {/* Status card */}
-        <div className="card">
+        <div className={`card ${riskLevel === 'HIGH RISK' || status === 'SOS_ACTIVE' ? 'card-pulse-high' : riskLevel === 'CAUTION' || riskLevel === 'ELEVATED RISK' ? 'card-pulse-caution' : ''}`}>
           <div className="card-header">
             <h2 className="card-title">
               <ShieldAlert size={18} />
@@ -257,7 +384,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   Check In Safe
                 </button>
               )}
-              <button onClick={onEndJourney} className="btn-secondary" style={{ flex: 1 }}>
+              <button onClick={() => { stopSosSiren(); onEndJourney(); }} className="btn-secondary" style={{ flex: 1 }}>
                 End Journey
               </button>
             </div>
@@ -276,6 +403,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '0.5rem' }}>
             ℹ️ Press to start a 3-second emergency alert countdown. Double click to trigger immediately.
           </div>
+          {status === 'SOS_ACTIVE' && (
+            <div style={{ textAlign: 'center', color: 'var(--color-sos)', fontSize: '0.8rem', fontWeight: 600, marginTop: '0.5rem' }}>
+              🔊 Emergency siren active
+            </div>
+          )}
         </div>
       </div>
 
